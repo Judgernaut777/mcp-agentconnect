@@ -15,7 +15,7 @@
 #   external        — free/low-cost cloud, only after redaction
 #   external_paid   — paid cloud, only after redaction + budget check
 
-policy_version: "2026-07-02.2"
+policy_version: "2026-07-06.1"
 
 providers:
   # Owned, always-on local box. Reached over mutual TLS.
@@ -105,3 +105,31 @@ providers:
       # $ per 1K tokens, used for spend estimation / budget enforcement.
       price_per_1k_input_usd: 0.0025
       price_per_1k_output_usd: 0.01
+
+  openrouter_free:
+    type: cloud
+    endpoint: "https://openrouter.ai/api/v1"
+    secret_ref: "op://AI/openrouter/api-key"
+    privacy: external
+    capabilities: [general_chat, open_source_benchmarks, coding, reasoning]
+    quota:
+      kind: free_tier
+      reset: daily
+      max_daily_requests: 200
+      max_daily_tokens: 200000
+
+  # Real pay-as-you-go billing (not a free tier) — deliberately external_paid so
+  # `budget.require_explicit` (config/routing.yaml) gates it behind an explicit
+  # set_budget call, same as openai_paid above.
+  grok_cloud:
+    type: cloud
+    endpoint: "https://api.x.ai/v1"
+    secret_ref: "op://AI/grok/api-key"
+    privacy: external_paid
+    capabilities: [reasoning, real_time_search]
+    quota:
+      kind: paid
+      max_daily_spend_usd: 1.00
+      # Placeholder — confirm against x.ai's current pricing page before relying on this.
+      price_per_1k_input_usd: 0.003
+      price_per_1k_output_usd: 0.015
